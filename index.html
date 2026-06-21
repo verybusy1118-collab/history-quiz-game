@@ -1,0 +1,1274 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文化關・日治時代闖關遊戲</title>
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#1f2937;
+      --card:rgba(255,255,255,.95);
+      --ink:#0f172a;
+      --muted:#5b6475;
+      --accent:#c46b2e;
+      --accent2:#0f766e;
+      --good:#15803d;
+      --bad:#b91c1c;
+      --line:#d7e0ea;
+      --shadow:0 24px 70px rgba(0,0,0,.26);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+      color:#fff;
+      background:
+        radial-gradient(circle at top left, rgba(196,107,46,.30), transparent 28%),
+        radial-gradient(circle at top right, rgba(15,118,110,.28), transparent 24%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+    }
+    button,input{font:inherit}
+    .wrap{
+      min-height:100%;
+      padding:18px;
+      display:flex;
+      justify-content:center;
+      align-items:stretch;
+    }
+    .app{
+      width:min(1240px, 100%);
+      min-height:calc(100vh - 36px);
+      border-radius:28px;
+      overflow:hidden;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(16px);
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+    .topbar{
+      padding:16px 20px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      background:linear-gradient(90deg, rgba(196,107,46,.34), rgba(15,118,110,.24));
+      border-bottom:1px solid rgba(255,255,255,.12);
+      font-size:14px;
+      letter-spacing:.03em;
+    }
+    .pill{
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.14);
+      backdrop-filter:blur(10px);
+    }
+    .screen{display:none}
+    .screen.active{display:block}
+    .intro{
+      display:none;
+      position:absolute;
+      inset:0;
+      z-index:30;
+      background:#000;
+    }
+    .intro.active{display:block}
+    .introVideo{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      filter:saturate(.95) contrast(1.03);
+    }
+    .introShade{
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(15,23,42,.06) 18%, rgba(15,23,42,.72) 100%);
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      padding:24px;
+    }
+    .introTitle{
+      margin:0 0 8px;
+      font-size:clamp(32px, 5vw, 60px);
+      line-height:1.02;
+      letter-spacing:.06em;
+    }
+    .introText{
+      margin:0 0 18px;
+      max-width:44ch;
+      line-height:1.8;
+      color:#f8fafc;
+    }
+    .actions,.footerActions{display:flex;gap:12px;flex-wrap:wrap}
+    .btn{
+      border:0;
+      border-radius:16px;
+      padding:13px 18px;
+      cursor:pointer;
+      font-weight:700;
+      transition:transform .15s ease, opacity .15s ease, background .15s ease;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn.primary{background:var(--accent2);color:#fff}
+    .btn.secondary{background:var(--accent);color:#fff}
+    .btn.ghost{background:rgba(255,255,255,.88);color:var(--ink)}
+    .portalBtn{
+      position:relative;
+      padding:16px 24px;
+      border-radius:999px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.3), transparent 26%),
+        linear-gradient(135deg, #22c55e, #0f766e 48%, #0f172a);
+      color:#f8fafc;
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,.18),
+        0 0 24px rgba(34,197,94,.34),
+        0 0 54px rgba(14,165,233,.24);
+      letter-spacing:.08em;
+      overflow:hidden;
+      isolation:isolate;
+      animation:portalPulse 2.2s ease-in-out infinite;
+    }
+    .portalBtn::before{
+      content:"";
+      position:absolute;
+      inset:-20% -8%;
+      background:
+        conic-gradient(from 0deg, transparent 0 18%, rgba(255,255,255,.38) 18% 24%, transparent 24% 48%, rgba(251,191,36,.34) 48% 54%, transparent 54% 78%, rgba(34,197,94,.34) 78% 84%, transparent 84% 100%);
+      animation:portalSpin 5.2s linear infinite;
+      z-index:-2;
+    }
+    .portalBtn::after{
+      content:"";
+      position:absolute;
+      inset:2px;
+      border-radius:999px;
+      background:linear-gradient(135deg, rgba(15,118,110,.88), rgba(15,23,42,.88));
+      z-index:-1;
+    }
+    .portalBtn:hover{
+      transform:translateY(-2px) scale(1.01);
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,.22),
+        0 0 30px rgba(34,197,94,.42),
+        0 0 70px rgba(14,165,233,.28);
+    }
+    .hero{
+      display:grid;
+      grid-template-columns:1.02fr .98fr;
+      gap:20px;
+      padding:22px;
+    }
+    .card{
+      background:var(--card);
+      color:var(--ink);
+      border-radius:24px;
+      box-shadow:0 12px 34px rgba(0,0,0,.12);
+      border:1px solid rgba(255,255,255,.6);
+    }
+    .panel{padding:24px}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#fff7ed;
+      color:var(--accent);
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:14px;
+    }
+    .title{
+      margin:0 0 12px;
+      font-size:clamp(30px, 4.6vw, 58px);
+      line-height:1.05;
+      letter-spacing:.04em;
+    }
+    .subtitle{
+      margin:0 0 16px;
+      line-height:1.85;
+      color:var(--muted);
+    }
+    .field{display:grid;gap:10px;margin-top:14px}
+    .field label{font-weight:700}
+    input[type="text"]{
+      width:100%;
+      padding:14px 16px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+    }
+    .portal{
+      margin-top:16px;
+      padding:14px 16px;
+      border-radius:18px;
+      background:#fff7ed;
+      border:1px solid #f5d5aa;
+      color:#7c2d12;
+      line-height:1.75;
+    }
+    .art{
+      position:relative;
+      overflow:hidden;
+      padding:24px;
+      min-height:100%;
+      color:#fff;
+      background:
+        radial-gradient(circle at 22% 16%, rgba(255,255,255,.28), transparent 18%),
+        radial-gradient(circle at 75% 30%, rgba(255,255,255,.14), transparent 22%),
+        linear-gradient(135deg, #c58a47, #7c431f);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .art::before{
+      content:"";
+      position:absolute;
+      inset:auto -15% -35% auto;
+      width:280px;
+      height:280px;
+      border-radius:50%;
+      background:rgba(255,255,255,.10);
+      filter:blur(6px);
+    }
+    .art h2,.art p,.art .heroCard{position:relative;z-index:1}
+    .art h2{margin:0;font-size:28px}
+    .art p{margin:10px 0 0;line-height:1.8;max-width:30ch}
+    .heroCard{
+      padding:14px;
+      border-radius:20px;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.16);
+      backdrop-filter:blur(8px);
+    }
+    .heroGirl{
+      width:min(100%, 300px);
+      display:block;
+      margin:0 auto 10px;
+      filter:drop-shadow(0 16px 24px rgba(0,0,0,.18));
+      animation:float 3.8s ease-in-out infinite;
+    }
+    .speech{
+      position:relative;
+      background:#fff7ed;
+      color:#7c2d12;
+      border:1px solid #f5d5aa;
+      border-radius:18px;
+      padding:12px 14px;
+      line-height:1.75;
+      font-size:14px;
+    }
+    .speech::before{
+      content:"";
+      position:absolute;
+      left:30px;
+      top:-12px;
+      border:11px solid transparent;
+      border-bottom-color:#f5d5aa;
+    }
+    .speech::after{
+      content:"";
+      position:absolute;
+      left:31px;
+      top:-10px;
+      border:10px solid transparent;
+      border-bottom-color:#fff7ed;
+    }
+    .stage{display:none;padding:22px}
+    .stage.active{display:block}
+    .stageCard{padding:22px}
+    .stageHead{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:14px;
+    }
+    .stageTitle{font-size:20px;font-weight:800}
+    .stageSub{color:#64748b;margin-top:4px}
+    .progress{
+      width:100%;
+      height:12px;
+      border-radius:999px;
+      background:#e2e8f0;
+      overflow:hidden;
+      margin:12px 0 18px;
+    }
+    .bar{
+      width:0%;
+      height:100%;
+      background:linear-gradient(90deg, var(--accent), var(--accent2));
+      transition:width .35s ease;
+    }
+    .axis{
+      display:flex;
+      align-items:flex-end;
+      gap:12px;
+      margin:12px 0 18px;
+    }
+    .axisWrap{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      width:min(160px, 18vw);
+      flex:0 0 auto;
+    }
+    .axisImg{
+      width:100%;
+      object-fit:contain;
+      filter:drop-shadow(0 12px 16px rgba(0,0,0,.12));
+    }
+    .axisBubble{
+      width:100%;
+      min-height:68px;
+      padding:10px 12px;
+      border-radius:16px;
+      background:#fff7ed;
+      color:#7c2d12;
+      border:1px solid #f5d5aa;
+      line-height:1.7;
+      font-size:13px;
+      text-align:center;
+    }
+    .axisBubble.police{
+      background:#eff6ff;
+      color:#1d4ed8;
+      border-color:#bfdbfe;
+    }
+    .axisBubble.police.warning{
+      background:#fee2e2;
+      color:#991b1b;
+      border-color:#fca5a5;
+    }
+    .axisBubble.police.capture{
+      background:#fee2e2;
+      color:#991b1b;
+      border-color:#ef4444;
+      font-weight:700;
+    }
+    .axisTrack{
+      position:relative;
+      flex:1 1 auto;
+      height:10px;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(196,107,46,.24), rgba(15,118,110,.28));
+      overflow:hidden;
+      margin-bottom:32px;
+    }
+    .axisTrack::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:repeating-linear-gradient(90deg, rgba(255,255,255,.4) 0 24px, transparent 24px 48px);
+      opacity:.35;
+    }
+    .axisStudentWrap{
+      margin-left:auto;
+      transform:none;
+      transition:none;
+    }
+    .axisPoliceWrap{
+      transition:transform .35s ease;
+    }
+    .gates{
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:8px;
+    }
+    .gate{
+      position:relative;
+      min-height:168px;
+      border-radius:22px;
+      overflow:hidden;
+      background:#f6efe4;
+      border:1px solid #d2bf9a;
+      box-shadow:inset 0 0 0 4px rgba(255,255,255,.12), 0 12px 28px rgba(0,0,0,.16);
+    }
+    .gateArt{
+      position:absolute;
+      inset:8px 8px 42px 8px;
+      width:calc(100% - 16px);
+      height:calc(100% - 50px);
+      object-fit:contain;
+      object-position:center;
+      background:rgba(255,255,255,.92);
+      border-radius:16px;
+      transition:transform .4s ease, filter .4s ease;
+    }
+    .gateShade{
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(15,23,42,.02), rgba(15,23,42,.34));
+    }
+    .gateLabel{
+      position:absolute;
+      left:10px;
+      right:10px;
+      bottom:10px;
+      z-index:1;
+      padding:10px 10px 8px;
+      border-radius:14px;
+      background:rgba(15,23,42,.62);
+      color:#fff;
+      backdrop-filter:blur(8px);
+      text-align:center;
+      line-height:1.5;
+      font-size:11px;
+    }
+    .gateNum{display:inline-block;min-width:20px;margin-bottom:3px;font-weight:700;color:#fde68a}
+    .gate.current{
+      box-shadow:0 0 0 3px rgba(251,191,36,.42), inset 0 0 0 4px rgba(255,255,255,.12), 0 14px 32px rgba(0,0,0,.18);
+      animation:pulse 1.4s ease-in-out infinite;
+    }
+    .gate.current .gateArt{transform:scale(1.03)}
+    .gate.done .gateArt{filter:grayscale(1) brightness(1.12)}
+    .gate.done .gateLabel{background:rgba(75,85,99,.80)}
+    .storyBox{
+      padding:14px 16px;
+      border-radius:18px;
+      background:linear-gradient(180deg, #fffbeb, #f8fafc);
+      border:1px solid #f1d6a8;
+      color:#7c2d12;
+      line-height:1.8;
+      min-height:78px;
+      margin-top:12px;
+    }
+    .question{
+      font-size:28px;
+      line-height:1.45;
+      margin:14px 0 16px;
+    }
+    .choices{
+      display:grid;
+      gap:12px;
+    }
+    .choice{
+      text-align:left;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      border-radius:18px;
+      padding:14px 16px;
+      cursor:pointer;
+      line-height:1.7;
+      transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .choice:hover{transform:translateY(-1px);border-color:#c08457}
+    .choice.correct{background:#dcfce7;border-color:#22c55e}
+    .choice.wrong{background:#fee2e2;border-color:#ef4444}
+    .info{
+      margin-top:14px;
+      padding:14px 16px;
+      border-radius:16px;
+      background:#f8fafc;
+      border:1px solid var(--line);
+      color:var(--muted);
+      min-height:58px;
+      line-height:1.75;
+    }
+    .dragBoard{
+      display:grid;
+      gap:14px;
+      margin-top:2px;
+    }
+    .dropZone{
+      min-height:120px;
+      border:2px dashed #c08457;
+      border-radius:22px;
+      background:#fff7ed;
+      color:#92400e;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      font-weight:700;
+      line-height:1.7;
+      text-align:center;
+    }
+    .dropZone.over{background:#fde68a;border-color:#f59e0b}
+    .dropZone.correct{background:#dcfce7;border-color:#22c55e;color:#166534}
+    .dropZone.wrong{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+    .dragChoices{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+    .dragChoice{
+      cursor:grab;
+      user-select:none;
+    }
+    .dragChoice:active{cursor:grabbing}
+    .dragChoice.dragging{opacity:.55;transform:scale(.98)}
+    .result{
+      display:none;
+      padding:22px;
+    }
+    .result.active{display:block}
+    .resultCard{padding:28px 24px 24px;text-align:center}
+    .resultTitle{
+      margin:0 0 10px;
+      font-size:clamp(32px, 4.8vw, 54px);
+    }
+    .resultText{
+      margin:0 auto;
+      max-width:54ch;
+      line-height:1.9;
+      color:#5b6475;
+    }
+    .resultMark{
+      margin:18px auto 0;
+      max-width:360px;
+      padding:14px 18px;
+      border-radius:18px;
+      background:#dcfce7;
+      border:1px solid #86efac;
+      color:#166534;
+      font-weight:800;
+      letter-spacing:.06em;
+    }
+    .resultVideo{
+      width:100%;
+      margin-top:18px;
+      border-radius:22px;
+      background:#000;
+      display:none;
+      pointer-events:none;
+    }
+    .map{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:10px;
+    }
+    .node{
+      padding:12px 10px;
+      border-radius:16px;
+      text-align:center;
+      background:#e2e8f0;
+      color:#334155;
+      font-size:13px;
+      line-height:1.4;
+    }
+    .node.done{background:#bbf7d0;color:#14532d}
+    .node.now{background:#fde68a;color:#92400e}
+    .hidden{display:none !important}
+    .shake{animation:shake .35s ease}
+    .fadeUp{animation:fadeUp .45s ease both}
+    .sceneMask{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:0;
+      background:radial-gradient(circle at center, rgba(255,255,255,.24), rgba(255,255,255,0) 46%);
+      transition:opacity .2s ease;
+      z-index:50;
+    }
+    .sceneMask.show{opacity:1}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes pulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes portalSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes portalPulse{0%,100%{box-shadow:0 0 0 2px rgba(255,255,255,.18),0 0 24px rgba(34,197,94,.34),0 0 54px rgba(14,165,233,.24)}50%{box-shadow:0 0 0 2px rgba(255,255,255,.26),0 0 34px rgba(251,191,36,.38),0 0 80px rgba(14,165,233,.34)}}
+    @media (max-width: 1080px){
+      .hero{grid-template-columns:1fr}
+      .axis{gap:10px}
+      .axisWrap{width:min(118px, 24vw)}
+      .axisTrack{margin-bottom:26px}
+      .gates,.map{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .question{font-size:24px}
+    }
+    @media (max-width: 640px){
+      .wrap{padding:10px}
+      .app{min-height:calc(100vh - 20px);border-radius:20px}
+      .topbar{padding:14px 16px}
+      .hero,.stage,.result{padding:14px}
+      .panel,.stageCard,.resultCard{padding:18px 16px}
+      .gates,.map{grid-template-columns:1fr}
+      .introShade{padding:16px}
+      .actions,.footerActions{flex-direction:column}
+      .btn{width:100%}
+      .axisWrap{width:88px}
+      .axisBubble{font-size:12px;min-height:60px}
+      .gate{min-height:138px}
+    }
+  </style>
+</head>
+<body>
+  <div class="sceneMask" id="sceneMask"></div>
+  <div class="wrap">
+    <main class="app">
+      <section class="intro active" id="introScreen" aria-label="開場動畫">
+        <video class="introVideo" id="introVideo" playsinline preload="auto" poster="gate5.png">
+          <source src="穿越日治時代_歷史闖關_202606202238.mp4" type="video/mp4">
+        </video>
+        <div class="introShade">
+          <h1 class="introTitle">文化關・日治時代闖關遊戲</h1>
+          <p class="introText" id="introText">準備跨越時代後，才會開始播放開場。</p>
+          <div class="actions">
+            <button class="btn portalBtn" id="prepareBtn">準備跨越時代</button>
+            <button class="btn primary hidden" id="enterBtn">進入首頁</button>
+            <button class="btn ghost hidden" id="skipBtn">略過動畫</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen active" id="homeScreen">
+        <div class="topbar">
+          <div class="pill" id="statusText">準備開始</div>
+          <div class="pill" id="userText">尚未輸入姓名</div>
+        </div>
+        <div class="hero">
+          <section class="card panel">
+            <div class="badge">5 關闖關・20 題</div>
+            <h2 class="title">文化關・日治時代闖關遊戲</h2>
+            <p class="subtitle">
+              先輸入名字，再依序完成五個主題關卡。
+              每關 4 題。答對會前進，答錯累積 6 次就失敗。
+            </p>
+
+            <div class="field">
+              <label for="nameInput">輸入姓名</label>
+              <input id="nameInput" type="text" maxlength="12" placeholder="例如：黃小明" />
+            </div>
+
+            <div class="actions" style="margin-top:16px">
+              <button class="btn primary" id="startBtn">開始闖關</button>
+              <button class="btn secondary" id="demoBtn">試玩模式</button>
+            </div>
+
+            <div class="portal" id="portalText"></div>
+          </section>
+
+          <section class="card art">
+            <div>
+              <h2>世界觀</h2>
+              <p>跟著角色穿越五個主題關卡，完成社會科知識挑戰。</p>
+            </div>
+
+            <div class="heroCard">
+              <img class="heroGirl" src="2d0e9d58-5d3f-4957-9998-6f7795098317.png" alt="學生角色圖" />
+              <div class="speech" id="heroSpeech">先輸入姓名，再開始闖關。答對越多，越快完成所有關卡。</div>
+            </div>
+
+            <div class="portal hidden" id="artPortal"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="screen stage" id="stageScreen">
+        <div class="stageCard card">
+          <div class="stageHead">
+            <div>
+              <div class="stageTitle" id="stageTitle"></div>
+              <div class="stageSub" id="stageSub"></div>
+            </div>
+            <div class="pill" id="scoreText"></div>
+          </div>
+
+          <div class="progress"><div class="bar" id="progressBar"></div></div>
+
+          <div class="axis">
+            <div class="axisWrap axisPoliceWrap" id="policeWrap">
+              <img class="axisImg" src="81545c20-e527-4c74-b99c-a540ec39f6e8.png" alt="警察角色" />
+              <div class="axisBubble police" id="policeBubble">警察會隨著錯誤次數往前接近。</div>
+            </div>
+            <div class="axisTrack"></div>
+            <div class="axisWrap axisStudentWrap" id="studentWrap">
+              <img class="axisImg" src="2d0e9d58-5d3f-4957-9998-6f7795098317.png" alt="女孩角色" />
+              <div class="axisBubble" id="girlHint">請先開始闖關。</div>
+            </div>
+          </div>
+
+          <div class="gates" id="gateLine"></div>
+          <div class="storyBox" id="storyBox"></div>
+
+          <div class="question" id="questionText"></div>
+          <div class="choices" id="choicesBox"></div>
+          <div class="info" id="infoBox">請先開始作答。</div>
+
+          <div class="actions" style="margin-top:16px">
+            <button class="btn primary hidden" id="nextBtn">下一題</button>
+            <button class="btn ghost hidden" id="restartBtn">重做本題</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen result" id="resultScreen">
+        <div class="card resultCard">
+          <div id="resultPrelude">
+            <h2 class="resultTitle" id="resultTitle"></h2>
+            <p class="resultText" id="resultText"></p>
+            <div class="resultMark" id="resultMark"></div>
+          </div>
+          <video class="resultVideo" id="successVideo" playsinline preload="metadata">
+            <source src="Q版學生完成闖關_202606202313.mp4" type="video/mp4">
+          </video>
+          <div class="map" id="mapBox"></div>
+          <div class="actions" style="justify-content:center;margin-top:18px">
+            <button class="btn secondary" id="playAgainBtn">再玩一次</button>
+            <button class="btn ghost hidden" id="replayIntroBtn">重看開場</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const stages = [
+      {
+        title: "第一關：入門闖",
+        hint: "關鍵字：警察、保甲、戶口調查、山地管理。",
+        story: "先從治理工具開始。這一關要抓住警察、保甲、戶口調查與山地管理的概念。",
+        image: "gate1.png",
+        questions: [
+          { q: "如果一個地區設有警察、保甲與巡查制度，最可能是在做什麼？", c: ["鼓勵自由遷徙", "強化地方控制", "推廣體育競賽", "發展觀光"], a: 1 },
+          { q: "戶口調查、登記人口，最主要的目的通常是什麼？", c: ["增加節慶活動", "改善海運", "鼓勵農民休閒", "掌握人民與行政管理"], a: 3 },
+          { q: "山地調查與管理蕃人制度，最接近哪一種治理方式？", c: ["對城市商店的補助", "對港口的修建", "對學校的獎勵", "對原住民地區的管制"], a: 3 },
+          { q: "甲午戰爭帶來的影響是什麼？", c: ["清帝國打敗日本", "台灣被割讓給日本", "日本鼓勵台灣走向民主", "台灣被割給朝鮮"], a: 1 }
+        ]
+      },
+      {
+        title: "第二關：制度闖",
+        hint: "關鍵字：教育政策、警察、總督府、保甲制度。",
+        story: "這一關聚焦統治制度。教育、警察、總督府與保甲制度是主要重點。",
+        image: "gate2.png",
+        questions: [
+          { q: "日治時期的教育政策，通常帶有什麼目的？", c: ["只教神話故事", "只訓練打獵", "完全不用學校", "培養人民順從與專門人才"], a: 3 },
+          { q: "警察在當時社會中，最主要的功能是什麼？", c: ["負責設計服裝", "專門開設商店", "只做交通旅遊", "維持秩序並監督人民"], a: 3 },
+          { q: "臺灣總督府在當時扮演的角色最接近哪一項？", c: ["地方市場協會", "民間娛樂團體", "校外補習班", "最高統治機關"], a: 3 },
+          { q: "保甲制度最主要的作用是什麼？", c: ["鄰里互相管理與監視", "推廣棒球", "提高海拔", "協助郵政"], a: 0 }
+        ]
+      },
+      {
+        title: "第三關：建設闖",
+        hint: "關鍵字：鐵路、港口、公共建設、水利工程。",
+        story: "這一關看的是建設與交通。鐵路、港口與水利工程會直接改變社會運作。",
+        image: "gate3.png",
+        questions: [
+          { q: "鐵路與港口的建設，最直接帶來什麼效果？", c: ["農作物更少", "人民不能移動", "學校全部搬走", "運輸更方便"], a: 3 },
+          { q: "日治時期哪一樣產業不是重點？", c: ["山林砍伐", "礦產開發", "房屋建設", "蔗糖、稻米"], a: 2 },
+          { q: "公共建設發展後，最可能出現哪種改變？", c: ["山區完全消失", "學校不再存在", "百姓不能工作", "物資流通更快"], a: 3 },
+          { q: "日治時期影響農業最大的水利工程是？", c: ["八堡圳", "嘉南大圳", "瑠公圳", "曹公圳"], a: 1 }
+        ]
+      },
+      {
+        title: "第四關：文化闖",
+        hint: "關鍵字：語言政策、學校、文化引進、藝術家。",
+        story: "這一關是文化變化。看語言政策、教育機構、文化引進與藝術發展。",
+        image: "gate4.png",
+        questions: [
+          { q: "日治時期常被推動的語言政策是什麼？", c: ["只學外語", "完全不學語言", "只學數學", "國語教育"], a: 3 },
+          { q: "日治時期屬於原住民讀的學校是：", c: ["小學校", "公學校", "蕃童教育所", "才藝班"], a: 2 },
+          { q: "西方與日式文化引進，當時最不可能看到的是？", c: ["電視", "西餐", "巴洛克藝術", "電影院"], a: 0 },
+          { q: "日治時期藝術家中引進現代舞的是：", c: ["陳澄波", "蔡瑞月", "陳進", "鄧雨賢"], a: 1 }
+        ]
+      },
+      {
+        title: "第五關：Boss 關",
+        hint: "關鍵字：抗日事件、霧社事件、樟腦衝突、皇民化。",
+        story: "最後一關是整體複習。先抓住抗日事件、族群衝突與皇民化運動的脈絡。",
+        image: "gate5.png",
+        questions: [
+          { q: "漢人最慘烈的抗日事件是？", c: ["霧社事件", "大豹社事件", "西來庵事件", "中日戰爭"], a: 2 },
+          { q: "賽德克族的抗日事件是？", c: ["霧社事件", "大豹社事件", "西來庵事件", "中日戰爭"], a: 0 },
+          { q: "日本人與泰雅族因為樟樹砍伐而發生的衝突是？", c: ["霧社事件", "大豹社事件", "西來庵事件", "中日戰爭"], a: 1 },
+          { q: "造成日本人積極推動皇民化運動的原因是？", c: ["霧社事件", "大豹社事件", "西來庵事件", "中日戰爭"], a: 3 }
+        ]
+      }
+    ];
+
+    const state = {
+      name: "",
+      stageIndex: 0,
+      questionIndex: 0,
+      totalWrong: 0,
+      locked: false,
+      captured: false
+    };
+
+    const introScreen = document.getElementById("introScreen");
+    const introVideo = document.getElementById("introVideo");
+    const homeScreen = document.getElementById("homeScreen");
+    const stageScreen = document.getElementById("stageScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const statusText = document.getElementById("statusText");
+    const userText = document.getElementById("userText");
+    const nameInput = document.getElementById("nameInput");
+    const startBtn = document.getElementById("startBtn");
+    const demoBtn = document.getElementById("demoBtn");
+    const prepareBtn = document.getElementById("prepareBtn");
+    const enterBtn = document.getElementById("enterBtn");
+    const skipBtn = document.getElementById("skipBtn");
+    const introText = document.getElementById("introText");
+    const portalText = document.getElementById("portalText");
+    const heroSpeech = document.getElementById("heroSpeech");
+    const artPortal = document.getElementById("artPortal");
+    const stageTitle = document.getElementById("stageTitle");
+    const stageSub = document.getElementById("stageSub");
+    const scoreText = document.getElementById("scoreText");
+    const progressBar = document.getElementById("progressBar");
+    const policeWrap = document.getElementById("policeWrap");
+    const studentWrap = document.getElementById("studentWrap");
+    const policeBubble = document.getElementById("policeBubble");
+    const girlHint = document.getElementById("girlHint");
+    const gateLine = document.getElementById("gateLine");
+    const storyBox = document.getElementById("storyBox");
+    const questionText = document.getElementById("questionText");
+    const choicesBox = document.getElementById("choicesBox");
+    const infoBox = document.getElementById("infoBox");
+    const nextBtn = document.getElementById("nextBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const resultPrelude = document.getElementById("resultPrelude");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultText = document.getElementById("resultText");
+    const resultMark = document.getElementById("resultMark");
+    const successVideo = document.getElementById("successVideo");
+    const mapBox = document.getElementById("mapBox");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+    const replayIntroBtn = document.getElementById("replayIntroBtn");
+    const sceneMask = document.getElementById("sceneMask");
+    const introAudio = {
+      ctx: null,
+      nodes: []
+    };
+    let introStarted = false;
+
+    portalText.textContent = "依序完成五關即可通關。";
+    heroSpeech.textContent = "先輸入姓名，再開始闖關。答對越多，越快完成所有關卡。";
+    artPortal.textContent = "";
+    successVideo.controls = false;
+
+    function show(screen){
+      introScreen.classList.toggle("active", screen === "intro");
+      homeScreen.classList.toggle("active", screen === "home");
+      stageScreen.classList.toggle("active", screen === "stage");
+      resultScreen.classList.toggle("active", screen === "result");
+    }
+
+    function enterHome(){
+      stopIntroSound();
+      introVideo.pause();
+      show("home");
+    }
+
+    function startIntroSequence(){
+      if (introStarted) return;
+      introStarted = true;
+      introText.textContent = "開場播放中。可直接略過，或看完後進入首頁。";
+      prepareBtn.classList.add("hidden");
+      enterBtn.classList.remove("hidden");
+      skipBtn.classList.remove("hidden");
+      startIntroSound();
+      introVideo.currentTime = 0;
+      introVideo.muted = false;
+      introVideo.play().catch(() => {});
+    }
+
+    function stopIntroSound(){
+      if (!introAudio.nodes.length) return;
+      for (const node of introAudio.nodes){
+        try{
+          if (node && typeof node.stop === "function") node.stop();
+          if (node && typeof node.disconnect === "function") node.disconnect();
+        }catch(_e){}
+      }
+      introAudio.nodes = [];
+    }
+
+    function startIntroSound(){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!introAudio.ctx) introAudio.ctx = new Ctx();
+      const ctx = introAudio.ctx;
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      stopIntroSound();
+
+      const master = ctx.createGain();
+      master.gain.value = 0.035;
+      master.connect(ctx.destination);
+
+      const tones = [
+        [261.63, 0.18, "triangle", 0.22, 0.00],
+        [329.63, 0.18, "triangle", 0.18, 0.08],
+        [392.00, 0.22, "sine", 0.16, 0.16],
+        [329.63, 0.18, "triangle", 0.14, 0.32],
+        [261.63, 0.26, "sine", 0.18, 0.48]
+      ];
+
+      for (const [freq, dur, type, gain, when] of tones){
+        const osc = ctx.createOscillator();
+        const amp = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        amp.gain.setValueAtTime(0.0001, ctx.currentTime + when);
+        amp.gain.exponentialRampToValueAtTime(gain, ctx.currentTime + when + 0.03);
+        amp.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + when + dur);
+        osc.connect(amp).connect(master);
+        osc.start(ctx.currentTime + when);
+        osc.stop(ctx.currentTime + when + dur + 0.05);
+        introAudio.nodes.push(osc, amp);
+      }
+
+      introAudio.nodes.push(master);
+    }
+
+    function setUser(name){
+      state.name = (name || "").trim() || "匿名玩家";
+      userText.textContent = `目前玩家：${state.name}`;
+    }
+
+    function renderMap(){
+      mapBox.innerHTML = stages.map((stage, idx) => {
+        const cls = idx < state.stageIndex ? "done" : (idx === state.stageIndex ? "now" : "");
+        return `<div class="node ${cls}">${idx + 1}<br>${stage.title}</div>`;
+      }).join("");
+    }
+
+    function updateScore(){
+      scoreText.textContent = `關卡 ${state.stageIndex + 1} / ${stages.length}｜錯誤 ${state.totalWrong} / 6`;
+    }
+
+    function renderGates(){
+      gateLine.innerHTML = stages.map((stage, idx) => {
+        const done = idx < state.stageIndex;
+        const current = idx === state.stageIndex;
+        return `
+          <div class="gate ${done ? "done" : ""} ${current ? "current" : ""}">
+            <img class="gateArt" src="${stage.image}" alt="${stage.title}">
+            <div class="gateShade"></div>
+            <div class="gateLabel">
+              <div class="gateNum">${idx + 1}</div>
+              ${stage.title}<br>${done ? "已完成" : (current ? "進行中" : "未解鎖")}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function updateProgress(){
+      const total = stages.length * 4;
+      const current = state.stageIndex * 4 + state.questionIndex;
+      progressBar.style.width = `${Math.round(current / total * 100)}%`;
+    }
+
+    function currentStage(){
+      return stages[state.stageIndex];
+    }
+
+    function currentQuestion(){
+      return currentStage().questions[state.questionIndex];
+    }
+
+    function isBossStage(){
+      return state.stageIndex === stages.length - 1;
+    }
+
+    function renderBossQuestion(q){
+      choicesBox.innerHTML = `
+        <div class="dragBoard">
+          <div class="dropZone" id="dropZone">把正確答案拖到這裡</div>
+          <div class="dragChoices">
+            ${q.c.map((text, idx) => `
+              <button class="choice dragChoice" type="button" draggable="true" data-idx="${idx}">
+                ${String.fromCharCode(65 + idx)}. ${text}
+              </button>
+            `).join("")}
+          </div>
+        </div>`;
+      infoBox.textContent = "請拖曳正確答案到方框內。";
+      nextBtn.classList.add("hidden");
+      restartBtn.classList.add("hidden");
+      const dropZone = choicesBox.querySelector("#dropZone");
+      const chips = [...choicesBox.querySelectorAll(".dragChoice")];
+      let dragIndex = null;
+
+      const finishDrag = (idx, chip) => {
+        chooseDrag(idx, chip, dropZone);
+      };
+
+      chips.forEach(chip => {
+        chip.addEventListener("dragstart", e => {
+          dragIndex = Number(chip.dataset.idx);
+          chip.classList.add("dragging");
+          e.dataTransfer.setData("text/plain", chip.dataset.idx);
+          e.dataTransfer.effectAllowed = "move";
+        });
+        chip.addEventListener("dragend", () => {
+          chip.classList.remove("dragging");
+        });
+        chip.addEventListener("click", () => finishDrag(Number(chip.dataset.idx), chip));
+      });
+
+      dropZone.addEventListener("dragover", e => {
+        e.preventDefault();
+        dropZone.classList.add("over");
+      });
+      dropZone.addEventListener("dragleave", () => dropZone.classList.remove("over"));
+      dropZone.addEventListener("drop", e => {
+        e.preventDefault();
+        dropZone.classList.remove("over");
+        const idx = Number(e.dataTransfer.getData("text/plain") || dragIndex);
+        const chip = chips.find(c => Number(c.dataset.idx) === idx);
+        if (!chip || Number.isNaN(idx)) return;
+        finishDrag(idx, chip);
+      });
+    }
+
+    function updateAxisHint(){
+      girlHint.textContent = currentStage().hint;
+      policeBubble.classList.remove("warning", "capture");
+      if (state.totalWrong === 0){
+        policeBubble.textContent = "警察會隨著錯誤次數往前接近。";
+      }else if (state.totalWrong < 6){
+        policeBubble.textContent = `目前錯誤 ${state.totalWrong} 次，還可以再想想。`;
+        policeBubble.classList.add("warning");
+      }else{
+        policeBubble.textContent = "錯誤已達 6 次，警察已帶走女學生。";
+        policeBubble.classList.add("capture");
+      }
+      const maxShift = 56;
+      const shift = Math.min(state.totalWrong, 6) / 6 * maxShift;
+      policeWrap.style.transform = `translateX(${shift}vw)`;
+    }
+
+    function renderQuestion(){
+      const stage = currentStage();
+      const q = currentQuestion();
+      state.locked = false;
+      renderGates();
+      updateProgress();
+      updateAxisHint();
+      stageTitle.textContent = stage.title;
+      stageSub.textContent = `${stage.hint}`;
+      updateScore();
+      storyBox.textContent = stage.story;
+      questionText.textContent = q.q;
+      infoBox.textContent = "請選一個答案。";
+      choicesBox.innerHTML = "";
+      nextBtn.classList.add("hidden");
+      restartBtn.classList.add("hidden");
+
+      if (isBossStage()){
+        renderBossQuestion(q);
+        return;
+      }
+
+      q.c.forEach((text, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.type = "button";
+        btn.textContent = `${String.fromCharCode(65 + idx)}. ${text}`;
+        btn.addEventListener("click", () => choose(idx, btn));
+        choicesBox.appendChild(btn);
+      });
+    }
+
+    function showCapture(){
+      state.captured = true;
+      state.locked = true;
+      updateAxisHint();
+      show("result");
+      resultPrelude.classList.remove("hidden");
+      resultTitle.textContent = "通關失敗";
+      resultText.textContent = "累積錯誤次數達到上限。本次闖關先結束，按「再玩一次」可以重新開始。";
+      resultMark.textContent = "錯誤次數已達 6 次";
+      resultMark.style.background = "#fee2e2";
+      resultMark.style.borderColor = "#fca5a5";
+      resultMark.style.color = "#991b1b";
+      successVideo.pause();
+      successVideo.style.display = "none";
+      replayIntroBtn.classList.remove("hidden");
+      playAgainBtn.textContent = "再玩一次";
+      renderMap();
+      statusText.textContent = "闖關失敗";
+    }
+
+    function showResult(){
+      show("result");
+      resultPrelude.classList.remove("hidden");
+      resultTitle.textContent = "通關成功";
+      resultText.textContent = `${state.name} 已完成全部五關。你已掌握日治時代的文化、治理、建設與重要事件重點。`;
+      resultMark.textContent = "完成 5 / 5 關";
+      resultMark.style.background = "#dcfce7";
+      resultMark.style.borderColor = "#86efac";
+      resultMark.style.color = "#166534";
+      successVideo.style.display = "block";
+      successVideo.currentTime = 0;
+      successVideo.play().catch(() => {});
+      playAgainBtn.textContent = "再玩一次";
+      replayIntroBtn.classList.remove("hidden");
+      renderMap();
+      statusText.textContent = "已完成所有關卡";
+    }
+
+    function advance(){
+      if (state.questionIndex < 3){
+        state.questionIndex += 1;
+        renderQuestion();
+        return;
+      }
+      state.stageIndex += 1;
+      state.questionIndex = 0;
+      if (state.stageIndex >= stages.length){
+        showResult();
+        return;
+      }
+      statusText.textContent = "進入下一關";
+      renderQuestion();
+    }
+
+    function resetQuestion(){
+      renderQuestion();
+    }
+
+    function choose(idx, btn){
+      if (state.locked || state.captured) return;
+      const q = currentQuestion();
+      if (idx === q.a){
+        state.locked = true;
+        btn.classList.add("correct");
+        infoBox.textContent = "答對了，繼續前進。";
+        statusText.textContent = "答對了，繼續前進。";
+        nextBtn.textContent = (state.questionIndex === 3) ? "完成本關" : "下一題";
+        nextBtn.classList.remove("hidden");
+        sceneMask.classList.add("show");
+        setTimeout(() => sceneMask.classList.remove("show"), 180);
+      }else{
+        btn.classList.add("wrong");
+        infoBox.textContent = "答錯了，請再想一次。";
+        statusText.textContent = "答錯了，請再想一次。";
+        state.totalWrong += 1;
+        updateScore();
+        updateAxisHint();
+        renderMap();
+        stageScreen.classList.add("shake");
+        setTimeout(() => stageScreen.classList.remove("shake"), 360);
+        if (state.totalWrong >= 6){
+          setTimeout(showCapture, 500);
+        }
+      }
+    }
+
+    function chooseDrag(idx, btn, dropZone){
+      if (state.locked || state.captured) return;
+      const q = currentQuestion();
+      if (idx === q.a){
+        state.locked = true;
+        btn.classList.add("correct");
+        dropZone.classList.remove("wrong");
+        dropZone.classList.add("correct");
+        dropZone.textContent = `答對：${q.c[idx]}`;
+        infoBox.textContent = "答對了，繼續前進。";
+        statusText.textContent = "答對了，繼續前進。";
+        nextBtn.textContent = (state.questionIndex === 3) ? "完成本關" : "下一題";
+        nextBtn.classList.remove("hidden");
+        sceneMask.classList.add("show");
+        setTimeout(() => sceneMask.classList.remove("show"), 180);
+      }else{
+        btn.classList.add("wrong");
+        dropZone.classList.add("wrong");
+        infoBox.textContent = "答錯了，請再拖一次。";
+        statusText.textContent = "答錯了，請再拖一次。";
+        state.totalWrong += 1;
+        updateScore();
+        updateAxisHint();
+        renderMap();
+        stageScreen.classList.add("shake");
+        setTimeout(() => stageScreen.classList.remove("shake"), 360);
+        if (state.totalWrong >= 6){
+          setTimeout(showCapture, 500);
+        }
+      }
+    }
+
+    function startGame(name){
+      stopIntroSound();
+      setUser(name);
+      state.stageIndex = 0;
+      state.questionIndex = 0;
+      state.totalWrong = 0;
+      state.locked = false;
+      state.captured = false;
+      successVideo.pause();
+      successVideo.style.display = "none";
+      replayIntroBtn.classList.add("hidden");
+      policeWrap.style.transform = "translateX(0)";
+      show("stage");
+      renderMap();
+      updateScore();
+      renderQuestion();
+      statusText.textContent = `目前玩家：${state.name}`;
+      introVideo.pause();
+    }
+
+    function resetHome(){
+      stopIntroSound();
+      state.stageIndex = 0;
+      state.questionIndex = 0;
+      state.totalWrong = 0;
+      state.locked = false;
+      state.captured = false;
+      introStarted = false;
+      nameInput.value = "";
+      userText.textContent = "尚未輸入姓名";
+      statusText.textContent = "準備開始";
+      successVideo.pause();
+      successVideo.style.display = "none";
+      replayIntroBtn.classList.add("hidden");
+      policeWrap.style.transform = "translateX(0)";
+      introText.textContent = "準備跨越時代後，才會開始播放開場。";
+      prepareBtn.classList.remove("hidden");
+      enterBtn.classList.add("hidden");
+      skipBtn.classList.add("hidden");
+      show("home");
+      renderMap();
+      renderGates();
+    }
+
+    startBtn.addEventListener("click", () => startGame(nameInput.value));
+    demoBtn.addEventListener("click", () => {
+      nameInput.value = "試玩玩家";
+      startGame(nameInput.value);
+    });
+    nextBtn.addEventListener("click", advance);
+    restartBtn.addEventListener("click", resetQuestion);
+    playAgainBtn.addEventListener("click", resetHome);
+    replayIntroBtn.addEventListener("click", () => {
+      stopIntroSound();
+      introStarted = false;
+      introText.textContent = "準備跨越時代後，才會開始播放開場。";
+      prepareBtn.classList.remove("hidden");
+      enterBtn.classList.add("hidden");
+      skipBtn.classList.add("hidden");
+      introVideo.currentTime = 0;
+      show("intro");
+    });
+    prepareBtn.addEventListener("click", startIntroSequence);
+    enterBtn.addEventListener("click", enterHome);
+    skipBtn.addEventListener("click", enterHome);
+    introVideo.addEventListener("ended", enterHome);
+    introVideo.addEventListener("timeupdate", () => {
+      if (introVideo.duration && introVideo.currentTime >= introVideo.duration - 0.15){
+        enterHome();
+      }
+    });
+    window.addEventListener("load", () => {
+      policeWrap.style.transform = "translateX(0)";
+      renderMap();
+      renderGates();
+      show("intro");
+    });
+  </script>
+</body>
+</html>
